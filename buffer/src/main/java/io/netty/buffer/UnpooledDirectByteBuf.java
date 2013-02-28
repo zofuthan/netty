@@ -69,6 +69,7 @@ final class UnpooledDirectByteBuf extends AbstractReferenceCountedByteBuf {
 
         this.alloc = alloc;
         setByteBuffer(ByteBuffer.allocateDirect(initialCapacity));
+        ByteBufAllocatorStats.nAllocs ++;
     }
 
     /**
@@ -469,6 +470,7 @@ final class UnpooledDirectByteBuf extends AbstractReferenceCountedByteBuf {
             PlatformDependent.freeDirectBuffer(buffer);
         }
         leak.close();
+        ByteBufAllocatorStats.nDeallocs ++;
     }
 
     @Override

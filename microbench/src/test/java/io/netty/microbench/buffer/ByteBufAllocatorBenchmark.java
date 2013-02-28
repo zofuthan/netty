@@ -19,8 +19,10 @@ package io.netty.microbench.buffer;
 import com.google.caliper.Param;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufAllocatorStats;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.buffer.autodealloc.AutoPooledByteBufAllocator;
 import io.netty.microbench.util.DefaultBenchmark;
 
 import java.util.ArrayDeque;
@@ -30,8 +32,11 @@ public class ByteBufAllocatorBenchmark extends DefaultBenchmark {
 
     private static final ByteBufAllocator POOLED_ALLOCATOR_HEAP = PooledByteBufAllocator.DEFAULT;
     private static final ByteBufAllocator POOLED_ALLOCATOR_DIRECT = new PooledByteBufAllocator(true);
+    private static final ByteBufAllocator AUTO_POOLED_ALLOCATOR_HEAP = AutoPooledByteBufAllocator.DEFAULT;
+    private static final ByteBufAllocator AUTO_POOLED_ALLOCATOR_DIRECT = new AutoPooledByteBufAllocator(true);
 
-    @Param({"0", "256", "1024", "4096", "16384", "65536"})
+    //@Param({"0", "256", "1024", "4096", "16384", "65536"})
+    @Param({"1024", "4096", "16384", "65536"})
     private int size;
 
     @Param
@@ -42,6 +47,8 @@ public class ByteBufAllocatorBenchmark extends DefaultBenchmark {
 
     @Override
     protected void setUp() throws Exception {
+        ByteBufAllocatorStats.nAllocs -= ByteBufAllocatorStats.nDeallocs;
+        ByteBufAllocatorStats.nDeallocs = 0;
         alloc = allocator.alloc();
         for (int i = 0; i < 2560; i ++) {
             queue.add(alloc.buffer(size));
@@ -54,6 +61,10 @@ public class ByteBufAllocatorBenchmark extends DefaultBenchmark {
             b.release();
         }
         queue.clear();
+        System.err.println("Allocated: " + ByteBufAllocatorStats.nAllocs + " time(s)");
+        System.err.println("Deallocated: " + ByteBufAllocatorStats.nDeallocs + " time(s)");
+        System.err.println(
+                "Deallocator behind by " + (ByteBufAllocatorStats.nAllocs - ByteBufAllocatorStats.nDeallocs));
     }
 
     public void timeAllocAndFree(int reps) {
@@ -68,30 +79,43 @@ public class ByteBufAllocatorBenchmark extends DefaultBenchmark {
     }
 
     public enum Allocator {
-        UNPOOLED_HEAP {
-            @Override
-            ByteBufAllocator alloc() {
-                return UnpooledByteBufAllocator.HEAP_BY_DEFAULT;
-            }
-        },
+//        UNPOOLED_HEAP {
+//            @Override
+//            ByteBufAllocator alloc() {
+//                return UnpooledByteBufAllocator.HEAP_BY_DEFAULT;
+//            }
+//        },
         UNPOOLED_DIRECT {
             @Override
             ByteBufAllocator alloc() {
                 return UnpooledByteBufAllocator.DIRECT_BY_DEFAULT;
             }
         },
-        POOLED_HEAP {
-            @Override
-            ByteBufAllocator alloc() {
-                return POOLED_ALLOCATOR_HEAP;
-            }
-        },
+//        POOLED_HEAP {
+//            @Override
+//            ByteBufAllocator alloc() {
+//                return POOLED_ALLOCATOR_HEAP;
+//            }
+//        },
         POOLED_DIRECT {
             @Override
             ByteBufAllocator alloc() {
                 return POOLED_ALLOCATOR_DIRECT;
             }
-        };
+        },
+//        AUTO_POOLED_HEAP {
+//            @Override
+//            ByteBufAllocator alloc() {
+//                return AUTO_POOLED_ALLOCATOR_HEAP;
+//            }
+//        },
+        AUTO_POOLED_DIRECT {
+            @Override
+            ByteBufAllocator alloc() {
+                return AUTO_POOLED_ALLOCATOR_DIRECT;
+            }
+        },
+        ;
 
         abstract ByteBufAllocator alloc();
     }

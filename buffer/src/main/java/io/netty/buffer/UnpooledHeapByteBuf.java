@@ -41,6 +41,7 @@ final class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
      */
     public UnpooledHeapByteBuf(ByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
         this(alloc, new byte[initialCapacity], 0, 0, maxCapacity);
+        ByteBufAllocatorStats.nAllocs ++;
     }
 
     /**
@@ -349,6 +350,7 @@ final class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
     @Override
     protected void deallocate() {
         array = null;
+        ByteBufAllocatorStats.nDeallocs ++;
     }
 
     @Override
