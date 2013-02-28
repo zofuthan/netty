@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 abstract class AutoPooledByteBuf<T> extends AbstractReferenceCountedByteBuf {
 
@@ -45,9 +45,12 @@ abstract class AutoPooledByteBuf<T> extends AbstractReferenceCountedByteBuf {
 
     private static final class BufRef extends PhantomReference<AutoPooledByteBuf> {
 
+        private static final AtomicIntegerFieldUpdater<BufRef> updater =
+                AtomicIntegerFieldUpdater.newUpdater(BufRef.class, "freed");
+
         private volatile AutoPoolChunk chunk;
         private volatile long handle;
-        private final AtomicBoolean freed;
+        private volatile int freed;
         private BufRef prev;
         private BufRef next;
 
@@ -62,16 +65,15 @@ abstract class AutoPooledByteBuf<T> extends AbstractReferenceCountedByteBuf {
                     head.next.prev = this;
                     head.next = this;
                 }
-                freed = new AtomicBoolean();
             } else {
-                freed = new AtomicBoolean(true); // head and tail
+                freed = -1;
             }
         }
 
         @Override
         public void clear() {
             super.clear();
-            if (freed.compareAndSet(false, true)) {
+            if (updater.compareAndSet(this, 0, -1)) {
                 synchronized (head) {
                     prev.next = next;
                     next.prev = prev;
