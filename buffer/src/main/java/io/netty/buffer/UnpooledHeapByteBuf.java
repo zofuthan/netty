@@ -20,6 +20,7 @@ import io.netty.util.internal.PlatformDependent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
@@ -30,6 +31,13 @@ import java.nio.channels.ScatteringByteChannel;
  * Big endian Java heap buffer implementation.
  */
 final class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
+
+    private static byte[] newByteArray(int capacity) {
+        byte[] array;
+        array = (byte[]) Array.newInstanceNoZero(byte.class, capacity);
+        //array = new byte[capacity];
+        return array;
+    }
 
     private final ByteBufAllocator alloc;
     private byte[] array;
@@ -42,7 +50,7 @@ final class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
      * @param maxCapacity the max capacity of the underlying byte array
      */
     public UnpooledHeapByteBuf(ByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
-        this(alloc, new byte[initialCapacity], 0, 0, maxCapacity);
+        this(alloc, newByteArray(initialCapacity), 0, 0, maxCapacity);
     }
 
     /**
@@ -111,11 +119,11 @@ final class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
 
         int oldCapacity = array.length;
         if (newCapacity > oldCapacity) {
-            byte[] newArray = new byte[newCapacity];
+            byte[] newArray = newByteArray(newCapacity);
             System.arraycopy(array, readerIndex(), newArray, readerIndex(), readableBytes());
             setArray(newArray);
         } else if (newCapacity < oldCapacity) {
-            byte[] newArray = new byte[newCapacity];
+            byte[] newArray = newByteArray(newCapacity);
             int readerIndex = readerIndex();
             if (readerIndex < newCapacity) {
                 int writerIndex = writerIndex();
@@ -399,7 +407,7 @@ final class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
     @Override
     public ByteBuf copy(int index, int length) {
         checkIndex(index, length);
-        byte[] copiedArray = new byte[length];
+        byte[] copiedArray = newByteArray(length);
         System.arraycopy(array, index, copiedArray, 0, length);
         return new UnpooledHeapByteBuf(alloc(), copiedArray, maxCapacity());
     }
