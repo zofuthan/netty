@@ -54,7 +54,6 @@ import static org.jboss.netty.channel.Channels.*;
 
 abstract class AbstractNioWorker implements Worker, ExternalResourceReleasable {
 
-
     private static final AtomicInteger nextId = new AtomicInteger();
 
     final int id = nextId.incrementAndGet();
@@ -140,7 +139,7 @@ abstract class AbstractNioWorker implements Worker, ExternalResourceReleasable {
             assert offered;
 
             if (wakenUp.compareAndSet(false, true)) {
-                selector.wakeup();
+                SelectorUtil.wakeup(selector);
             }
 
         }
@@ -320,7 +319,7 @@ abstract class AbstractNioWorker implements Worker, ExternalResourceReleasable {
 
                 if (wakenUp.get()) {
                     wakenupFromLoop = true;
-                    selector.wakeup();
+                    SelectorUtil.wakeup(selector);
                 } else {
                     wakenupFromLoop = false;
                 }
@@ -410,7 +409,7 @@ abstract class AbstractNioWorker implements Worker, ExternalResourceReleasable {
                         // wake up the selector to speed things
                         Selector selector = this.selector;
                         if (selector != null) {
-                            selector.wakeup();
+                            SelectorUtil.wakeup(selector);
                         }
                     }
                 }
@@ -495,10 +494,11 @@ abstract class AbstractNioWorker implements Worker, ExternalResourceReleasable {
         return false;
     }
 
-
-
     private void close(SelectionKey k) {
         AbstractNioChannel<?> ch = (AbstractNioChannel<?>) k.attachment();
+        if (logger.isDebugEnabled()) {
+            logger.debug(ch + ": closing due to an invalid key");
+        }
         close(ch, succeededFuture(ch));
     }
 
@@ -647,6 +647,25 @@ abstract class AbstractNioWorker implements Worker, ExternalResourceReleasable {
                 }
             }
         }
+
+        if (logger.isDebugEnabled()) {
+            StringBuilder buf = new StringBuilder();
+            buf.append(channel);
+            buf.append(": wrote ");
+            buf.append(writtenBytes);
+            buf.append(" bytes");
+            if (open) {
+                if (addOpWrite) {
+                    buf.append(" and set OP_WRITE");
+                } else if (removeOpWrite) {
+                    buf.append(" and cleared OP_WRITE");
+                }
+            } else {
+                buf.append(" and closed");
+            }
+            logger.debug(buf.toString());
+        }
+
         if (iothread) {
             fireWriteComplete(channel, writtenBytes);
         } else {
@@ -849,7 +868,7 @@ abstract class AbstractNioWorker implements Worker, ExternalResourceReleasable {
                         key.interestOps(interestOps);
                         if (Thread.currentThread() != thread &&
                             wakenUp.compareAndSet(false, true)) {
-                            selector.wakeup();
+                            SelectorUtil.wakeup(selector);
                         }
                         changed = true;
                     }
@@ -864,7 +883,7 @@ abstract class AbstractNioWorker implements Worker, ExternalResourceReleasable {
                             selectorGuard.readLock().lock();
                             try {
                                 if (wakenUp.compareAndSet(false, true)) {
-                                    selector.wakeup();
+                                    SelectorUtil.wakeup(selector);
                                 }
                                 key.interestOps(interestOps);
                                 changed = true;

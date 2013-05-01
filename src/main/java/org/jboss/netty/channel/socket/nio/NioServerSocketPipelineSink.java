@@ -15,7 +15,17 @@
  */
 package org.jboss.netty.channel.socket.nio;
 
-import static org.jboss.netty.channel.Channels.*;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelEvent;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.ChannelState;
+import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.logging.InternalLogger;
+import org.jboss.netty.logging.InternalLoggerFactory;
+import org.jboss.netty.util.ThreadRenamingRunnable;
+import org.jboss.netty.util.internal.DeadLockProofWorker;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -29,17 +39,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelState;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.logging.InternalLogger;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.jboss.netty.util.ThreadRenamingRunnable;
-import org.jboss.netty.util.internal.DeadLockProofWorker;
+import static org.jboss.netty.channel.Channels.*;
 
 class NioServerSocketPipelineSink extends AbstractNioChannelSink {
 
@@ -166,7 +166,7 @@ class NioServerSocketPipelineSink extends AbstractNioChannelSink {
                 channel.socket.close();
                 Selector selector = channel.selector;
                 if (selector != null) {
-                    selector.wakeup();
+                    SelectorUtil.wakeup(selector);
                 }
             }
 
@@ -228,7 +228,7 @@ class NioServerSocketPipelineSink extends AbstractNioChannelSink {
                     try {
                         // Just do a blocking select without any timeout
                         // as this thread does not execute anything else.
-                        selector.select();
+                        SelectorUtil.selectWithoutTimeout(selector);
                         // There was something selected if we reach this point, so clear
                         // the selected keys
                         selector.selectedKeys().clear();

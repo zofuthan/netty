@@ -15,7 +15,13 @@
  */
 package org.jboss.netty.channel.socket.nio;
 
-import static org.jboss.netty.channel.Channels.*;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBufferFactory;
+import org.jboss.netty.channel.ChannelException;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ReceiveBufferSizePredictor;
+import org.jboss.netty.logging.InternalLogger;
+import org.jboss.netty.logging.InternalLoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -26,13 +32,12 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Executor;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBufferFactory;
-import org.jboss.netty.channel.ChannelException;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ReceiveBufferSizePredictor;
+import static org.jboss.netty.channel.Channels.*;
 
 public class NioWorker extends AbstractNioWorker {
+
+    private static final InternalLogger logger = InternalLoggerFactory.getInstance(NioWorker.class);
+    private static final StringBuilder buf = new StringBuilder();
 
     private final SocketReceiveBufferAllocator recvBufferPool = new SocketReceiveBufferAllocator();
 
@@ -67,6 +72,19 @@ public class NioWorker extends AbstractNioWorker {
             // Can happen, and does not need a user attention.
         } catch (Throwable t) {
             fireExceptionCaught(channel, t);
+        }
+
+        if (logger.isDebugEnabled()) {
+            StringBuilder buf = NioWorker.buf;
+            buf.append(channel);
+            buf.append(": read ");
+            buf.append(readBytes);
+            buf.append(" bytes");
+            if (ret < 0) {
+                buf.append(" and EOF");
+            }
+            logger.debug(buf.toString());
+            buf.setLength(0);
         }
 
         if (readBytes > 0) {
@@ -109,7 +127,7 @@ public class NioWorker extends AbstractNioWorker {
                 final Selector workerSelector = selector;
                 if (workerSelector != null) {
                     if (wakenUp.compareAndSet(false, true)) {
-                        workerSelector.wakeup();
+                        SelectorUtil.wakeup(workerSelector);
                     }
                 }
             } else {

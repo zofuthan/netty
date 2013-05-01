@@ -15,27 +15,6 @@
  */
 package org.jboss.netty.channel.socket.nio;
 
-import static org.jboss.netty.channel.Channels.*;
-
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.SocketAddress;
-import java.nio.channels.CancelledKeyException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.jboss.netty.channel.ChannelEvent;
 import org.jboss.netty.channel.ChannelException;
 import org.jboss.netty.channel.ChannelFuture;
@@ -46,11 +25,32 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.logging.InternalLogger;
 import org.jboss.netty.logging.InternalLoggerFactory;
+import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.TimerTask;
-import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.jboss.netty.util.internal.DeadLockProofWorker;
+
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketAddress;
+import java.nio.channels.CancelledKeyException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.jboss.netty.channel.Channels.*;
 
 class NioClientSocketPipelineSink extends AbstractNioChannelSink {
 
@@ -195,7 +195,7 @@ class NioClientSocketPipelineSink extends AbstractNioChannelSink {
 
                 if (selector != null) {
                     if (wakenUp.compareAndSet(false, true)) {
-                        selector.wakeup();
+                        SelectorUtil.wakeup(selector);
                     }
                 }
             }
@@ -260,9 +260,8 @@ class NioClientSocketPipelineSink extends AbstractNioChannelSink {
                 }
             }
             if (wakenUp.compareAndSet(false, true)) {
-                selector.wakeup();
+                SelectorUtil.wakeup(selector);
             }
-
         }
 
         public void run() {
@@ -357,7 +356,7 @@ class NioClientSocketPipelineSink extends AbstractNioChannelSink {
 
                     if (wakenUp.get()) {
                         wakenupFromLoop = true;
-                        selector.wakeup();
+                        SelectorUtil.wakeup(selector);
                     } else {
                         wakenupFromLoop = false;
                     }
