@@ -20,7 +20,7 @@ import io.netty.util.internal.PlatformDependent;
 /**
  * Simplistic {@link ByteBufAllocator} implementation that does not pool anything.
  */
-public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator {
+public class UnpooledByteBufAllocator extends AbstractByteBufAllocator {
 
     /**
      * Default instance
