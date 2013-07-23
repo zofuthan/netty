@@ -69,4 +69,8 @@
       </plugin>
     </plugins>
   </build>
+  <properties>
+    <!-- Tests via nar are run in the integration test phase, so turn off the normal test phase. -->
+    <skipTests>true</skipTests>
+  </properties>
 </project>
