@@ -22,6 +22,12 @@ import java.nio.ByteBuffer;
  */
 final class Native {
 
+    static {
+        // Load the library
+        // NarSystem is auto-created by the nar plugin
+        NarSystem.loadLibrary();
+    }
+
     public static native void freeDirectBuffer(ByteBuffer buf);
     public static native ByteBuffer allocateDirectBuffer(int size);
 

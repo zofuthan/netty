@@ -24,7 +24,6 @@ public class UnpooledNativeByteBufAllocatorTest {
 
     @Test
     public void test() {
-        NarSystem
         UnpooledNativeByteBufAllocator allocator = UnpooledNativeByteBufAllocator.DEFAULT;
         ByteBuf buf = allocator.directBuffer();
         Assert.assertTrue(buf.isDirect());
