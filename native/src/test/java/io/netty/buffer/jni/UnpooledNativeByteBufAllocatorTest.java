@@ -16,18 +16,31 @@
 package io.netty.buffer.jni;
 
 
+import io.netty.buffer.AbstractByteBufTest;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.Assert;
-import org.junit.Test;
 
-public class UnpooledNativeByteBufAllocatorTest {
+import java.nio.ByteOrder;
 
-    @Test
-    public void test() {
-        UnpooledNativeByteBufAllocator allocator = UnpooledNativeByteBufAllocator.DEFAULT;
-        ByteBuf buf = allocator.directBuffer();
-        Assert.assertTrue(buf.isDirect());
-        buf.release();
-        Assert.assertEquals(0, buf.refCnt());
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
+public class UnpooledNativeByteBufAllocatorTest extends AbstractByteBufTest {
+
+    private ByteBuf buffer;
+
+    @Override
+    protected ByteBuf newBuffer(int length) {
+        buffer = UnpooledNativeByteBufAllocator.DEFAULT.directBuffer(length);
+        Assert.assertTrue(buffer.isDirect());
+        assertSame(ByteOrder.BIG_ENDIAN, buffer.order());
+        assertEquals(0, buffer.writerIndex());
+        return buffer;
+    }
+
+    @Override
+    protected ByteBuf[] components() {
+        return new ByteBuf[] { buffer };
     }
 }
