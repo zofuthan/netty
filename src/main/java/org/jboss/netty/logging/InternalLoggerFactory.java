@@ -72,73 +72,86 @@ public abstract class InternalLoggerFactory {
     /**
      * Creates a new logger instance with the specified name.
      */
-    public static InternalLogger getInstance(String name) {
-        final InternalLogger logger = getDefaultFactory().newInstance(name);
+    public static InternalLogger getInstance(final String name) {
+        if (name == null) {
+            throw new NullPointerException("name");
+        }
+
         return new InternalLogger() {
 
+            private InternalLogger logger;
+
+            private InternalLogger logger() {
+                InternalLogger logger = this.logger;
+                if (logger == null) {
+                    this.logger = logger = getDefaultFactory().newInstance(name);
+                }
+                return logger;
+            }
+
             public void debug(String msg) {
-                logger.debug(msg);
+                logger().debug(msg);
             }
 
             public void debug(String msg, Throwable cause) {
                 StackTraceSimplifier.simplify(cause);
-                logger.debug(msg, cause);
+                logger().debug(msg, cause);
             }
 
             public void error(String msg) {
-                logger.error(msg);
+                logger().error(msg);
             }
 
             public void error(String msg, Throwable cause) {
                 StackTraceSimplifier.simplify(cause);
-                logger.error(msg, cause);
+                logger().error(msg, cause);
             }
 
             public void info(String msg) {
-                logger.info(msg);
+                logger().info(msg);
             }
 
             public void info(String msg, Throwable cause) {
                 StackTraceSimplifier.simplify(cause);
-                logger.info(msg, cause);
+                logger().info(msg, cause);
             }
 
             public boolean isDebugEnabled() {
-                return logger.isDebugEnabled();
+                return logger().isDebugEnabled();
             }
 
             public boolean isErrorEnabled() {
-                return logger.isErrorEnabled();
+                return logger().isErrorEnabled();
             }
 
             public boolean isInfoEnabled() {
-                return logger.isInfoEnabled();
+                return logger().isInfoEnabled();
             }
 
             public boolean isWarnEnabled() {
-                return logger.isWarnEnabled();
+                return logger().isWarnEnabled();
             }
 
             public void warn(String msg) {
-                logger.warn(msg);
+                logger().warn(msg);
             }
 
             public void warn(String msg, Throwable cause) {
                 StackTraceSimplifier.simplify(cause);
-                logger.warn(msg, cause);
+                logger().warn(msg, cause);
             }
 
             public boolean isEnabled(InternalLogLevel level) {
-                return logger.isEnabled(level);
+                return logger().isEnabled(level);
             }
 
             public void log(InternalLogLevel level, String msg) {
-                logger.log(level, msg);
+                logger().log(level, msg);
             }
 
             public void log(InternalLogLevel level, String msg, Throwable cause) {
                 StackTraceSimplifier.simplify(cause);
-                logger.log(level, msg, cause);
+                logger().log(level, msg, cause);
             }
         };
     }
