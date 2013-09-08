@@ -17,10 +17,10 @@ package io.netty.handler.stream;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelProgressivePromise;
@@ -66,7 +66,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * call {@link #resumeTransfer()}.
  */
 public class ChunkedWriteHandler
-        extends ChannelDuplexHandler {
+        extends ChannelHandlerAdapter {
 
     private static final InternalLogger logger =
         InternalLoggerFactory.getInstance(ChunkedWriteHandler.class);

@@ -24,27 +24,11 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.net.SocketAddress;
 
 /**
  * Handles or intercepts a {@link ChannelInboundInvoker} or {@link ChannelOutboundInvoker} operation, and forwards it
  * to the next handler in a {@link ChannelPipeline}.
- *
- * <h3>Sub-types</h3>
- * <p>
- * {@link ChannelHandler} itself does not provide many methods.  To handle a
- * a {@link ChannelInboundInvoker} or {@link ChannelOutboundInvoker} operation
- * you need to implement its sub-interfaces.  There are many different sub-interfaces
- * which handles inbound and outbound operations.
- *
- * But the most useful for developers may be:
- * <ul>
- * <li>{@link ChannelInboundHandlerAdapter} handles and intercepts inbound operations</li>
- * <li>{@link ChannelOutboundHandlerAdapter} handles and intercepts outbound operations</li>
- * </ul>
- *
- * You will also find more detailed explanation from the documentation of
- * each sub-interface on how an event is interpreted when it goes upstream and
- * downstream respectively.
  *
  * <h3>The context object</h3>
  * <p>
@@ -196,6 +180,113 @@ public interface ChannelHandler {
      * Gets called if a {@link Throwable} was thrown.
      */
     void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception;
+
+    /**
+     * The {@link Channel} of the {@link ChannelHandlerContext} was registered with its {@link EventLoop}
+     */
+    void channelRegistered(ChannelHandlerContext ctx) throws Exception;
+
+    /**
+     * The {@link Channel} of the {@link ChannelHandlerContext} is now active
+     */
+    void channelActive(ChannelHandlerContext ctx) throws Exception;
+
+    /**
+     * The {@link Channel} of the {@link ChannelHandlerContext} was registered is now inactive and reached its
+     * end of lifetime.
+     */
+    void channelInactive(ChannelHandlerContext ctx) throws Exception;
+
+    /**
+     * Invoked when the current {@link Channel} has read a message from the peer.
+     */
+    void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception;
+
+    /**
+     * Invoked when the last message read by the current read operation has been consumed by
+     * {@link #channelRead(ChannelHandlerContext, Object)}.  If {@link ChannelOption#AUTO_READ} is off, no further
+     * attempt to read an inbound data from the current {@link Channel} will be made until
+     * {@link ChannelHandlerContext#read()} is called.
+     */
+    void channelReadComplete(ChannelHandlerContext ctx) throws Exception;
+
+    /**
+     * Gets called if an user event was triggered.
+     */
+    void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception;
+
+    /**
+     * Gets called once the writable state of a {@link Channel} changed. You can check the state with
+     * {@link Channel#isWritable()}.
+     */
+    void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception;
+
+    /**
+     * Called once a bind operation is made.
+     *
+     * @param ctx           the {@link ChannelHandlerContext} for which the bind operation is made
+     * @param localAddress  the {@link java.net.SocketAddress} to which it should bound
+     * @param promise       the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception    thrown if an error accour
+     */
+    void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws Exception;
+
+    /**
+     * Called once a connect operation is made.
+     *
+     * @param ctx               the {@link ChannelHandlerContext} for which the connect operation is made
+     * @param remoteAddress     the {@link SocketAddress} to which it should connect
+     * @param localAddress      the {@link SocketAddress} which is used as source on connect
+     * @param promise           the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception        thrown if an error accour
+     */
+    void connect(
+            ChannelHandlerContext ctx, SocketAddress remoteAddress,
+            SocketAddress localAddress, ChannelPromise promise) throws Exception;
+
+    /**
+     * Called once a disconnect operation is made.
+     *
+     * @param ctx               the {@link ChannelHandlerContext} for which the disconnect operation is made
+     * @param promise           the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception        thrown if an error accour
+     */
+    void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception;
+
+    /**
+     * Called once a close operation is made.
+     *
+     * @param ctx               the {@link ChannelHandlerContext} for which the close operation is made
+     * @param promise           the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception        thrown if an error accour
+     */
+    void close(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception;
+
+    /**
+     * Intercepts {@link ChannelHandlerContext#read()}.
+     */
+    void read(ChannelHandlerContext ctx) throws Exception;
+
+    /**
+     * Called once a write operation is made. The write operation will write the messages through the
+     * {@link ChannelPipeline}. Those are then ready to be flushed to the actual {@link Channel} once
+     * {@link Channel#flush()} is called
+     *
+     * @param ctx               the {@link ChannelHandlerContext} for which the write operation is made
+     * @param msg               the message to write
+     * @param promise           the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception        thrown if an error accour
+     */
+    void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception;
+
+    /**
+     * Called once a flush operation is made. The flush operation will try to flush out all previous written messages
+     * that are pending.
+     *
+     * @param ctx               the {@link ChannelHandlerContext} for which the flush operation is made
+     * @throws Exception        thrown if an error accour
+     */
+    void flush(ChannelHandlerContext ctx) throws Exception;
 
     /**
      * Indicates that the same instance of the annotated {@link ChannelHandler}

@@ -137,7 +137,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     @Override
     public ChannelHandlerContext fireChannelRegistered() {
-        final DefaultChannelHandlerContext next = findContextInbound();
+        final DefaultChannelHandlerContext next = this.next;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeChannelRegistered();
@@ -154,7 +154,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeChannelRegistered() {
         try {
-            ((ChannelInboundHandler) handler).channelRegistered(this);
+            handler.channelRegistered(this);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -162,7 +162,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     @Override
     public ChannelHandlerContext fireChannelActive() {
-        final DefaultChannelHandlerContext next = findContextInbound();
+        final DefaultChannelHandlerContext next = this.next;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeChannelActive();
@@ -179,7 +179,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeChannelActive() {
         try {
-            ((ChannelInboundHandler) handler).channelActive(this);
+            handler.channelActive(this);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -187,7 +187,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     @Override
     public ChannelHandlerContext fireChannelInactive() {
-        final DefaultChannelHandlerContext next = findContextInbound();
+        final DefaultChannelHandlerContext next = this.next;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeChannelInactive();
@@ -204,7 +204,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeChannelInactive() {
         try {
-            ((ChannelInboundHandler) handler).channelInactive(this);
+            handler.channelInactive(this);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -258,7 +258,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
             throw new NullPointerException("event");
         }
 
-        final DefaultChannelHandlerContext next = findContextInbound();
+        final DefaultChannelHandlerContext next = this.next;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeUserEventTriggered(event);
@@ -275,7 +275,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeUserEventTriggered(Object event) {
         try {
-            ((ChannelInboundHandler) handler).userEventTriggered(this, event);
+            handler.userEventTriggered(this, event);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -287,7 +287,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
             throw new NullPointerException("msg");
         }
 
-        final DefaultChannelHandlerContext next = findContextInbound();
+        final DefaultChannelHandlerContext next = this.next;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeChannelRead(msg);
@@ -304,7 +304,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeChannelRead(Object msg) {
         try {
-            ((ChannelInboundHandler) handler).channelRead(this, msg);
+            handler.channelRead(this, msg);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -312,7 +312,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     @Override
     public ChannelHandlerContext fireChannelReadComplete() {
-        final DefaultChannelHandlerContext next = findContextInbound();
+        final DefaultChannelHandlerContext next = this.next;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeChannelReadComplete();
@@ -333,7 +333,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeChannelReadComplete() {
         try {
-            ((ChannelInboundHandler) handler).channelReadComplete(this);
+            handler.channelReadComplete(this);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -341,7 +341,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     @Override
     public ChannelHandlerContext fireChannelWritabilityChanged() {
-        final DefaultChannelHandlerContext next = findContextInbound();
+        final DefaultChannelHandlerContext next = this.next;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeChannelWritabilityChanged();
@@ -362,7 +362,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeChannelWritabilityChanged() {
         try {
-            ((ChannelInboundHandler) handler).channelWritabilityChanged(this);
+            handler.channelWritabilityChanged(this);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -400,7 +400,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
         }
         validatePromise(promise, false);
 
-        final DefaultChannelHandlerContext next = findContextOutbound();
+        final DefaultChannelHandlerContext next = prev;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeBind(localAddress, promise);
@@ -418,7 +418,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeBind(SocketAddress localAddress, ChannelPromise promise) {
         try {
-            ((ChannelOutboundHandler) handler).bind(this, localAddress, promise);
+            handler.bind(this, localAddress, promise);
         } catch (Throwable t) {
             notifyOutboundHandlerException(t, promise);
         }
@@ -438,7 +438,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
         }
         validatePromise(promise, false);
 
-        final DefaultChannelHandlerContext next = findContextOutbound();
+        final DefaultChannelHandlerContext next = prev;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeConnect(remoteAddress, localAddress, promise);
@@ -456,7 +456,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeConnect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
         try {
-            ((ChannelOutboundHandler) handler).connect(this, remoteAddress, localAddress, promise);
+            handler.connect(this, remoteAddress, localAddress, promise);
         } catch (Throwable t) {
             notifyOutboundHandlerException(t, promise);
         }
@@ -466,7 +466,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     public ChannelFuture disconnect(final ChannelPromise promise) {
         validatePromise(promise, false);
 
-        final DefaultChannelHandlerContext next = findContextOutbound();
+        final DefaultChannelHandlerContext next = prev;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             // Translate disconnect to close if the channel has no notion of disconnect-reconnect.
@@ -494,7 +494,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeDisconnect(ChannelPromise promise) {
         try {
-            ((ChannelOutboundHandler) handler).disconnect(this, promise);
+            handler.disconnect(this, promise);
         } catch (Throwable t) {
             notifyOutboundHandlerException(t, promise);
         }
@@ -504,7 +504,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     public ChannelFuture close(final ChannelPromise promise) {
         validatePromise(promise, false);
 
-        final DefaultChannelHandlerContext next = findContextOutbound();
+        final DefaultChannelHandlerContext next = prev;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeClose(promise);
@@ -522,7 +522,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeClose(ChannelPromise promise) {
         try {
-            ((ChannelOutboundHandler) handler).close(this, promise);
+            handler.close(this, promise);
         } catch (Throwable t) {
             notifyOutboundHandlerException(t, promise);
         }
@@ -530,7 +530,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     @Override
     public ChannelHandlerContext read() {
-        final DefaultChannelHandlerContext next = findContextOutbound();
+        final DefaultChannelHandlerContext next = prev;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeRead();
@@ -552,7 +552,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeRead() {
         try {
-            ((ChannelOutboundHandler) handler).read(this);
+            handler.read(this);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -578,7 +578,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeWrite(Object msg, ChannelPromise promise) {
         try {
-            ((ChannelOutboundHandler) handler).write(this, msg, promise);
+            handler.write(this, msg, promise);
         } catch (Throwable t) {
             notifyOutboundHandlerException(t, promise);
         }
@@ -586,7 +586,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     @Override
     public ChannelHandlerContext flush() {
-        final DefaultChannelHandlerContext next = findContextOutbound();
+        final DefaultChannelHandlerContext next = prev;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeFlush();
@@ -608,7 +608,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void invokeFlush() {
         try {
-            ((ChannelOutboundHandler) handler).flush(this);
+            handler.flush(this);
         } catch (Throwable t) {
             notifyHandlerException(t);
         }
@@ -629,7 +629,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     private void write(Object msg, boolean flush, ChannelPromise promise) {
 
-        DefaultChannelHandlerContext next = findContextOutbound();
+        final DefaultChannelHandlerContext next = prev;
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeWrite(msg, promise);
@@ -752,22 +752,6 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
             throw new IllegalArgumentException(
                     StringUtil.simpleClassName(AbstractChannel.CloseFuture.class) + " not allowed in a pipeline");
         }
-    }
-
-    private DefaultChannelHandlerContext findContextInbound() {
-        DefaultChannelHandlerContext ctx = this;
-        do {
-            ctx = ctx.next;
-        } while (!(ctx.handler instanceof ChannelInboundHandler));
-        return ctx;
-    }
-
-    private DefaultChannelHandlerContext findContextOutbound() {
-        DefaultChannelHandlerContext ctx = this;
-        do {
-            ctx = ctx.prev;
-        } while (!(ctx.handler instanceof ChannelOutboundHandler));
-        return ctx;
     }
 
     @Override

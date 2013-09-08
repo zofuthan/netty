@@ -17,9 +17,8 @@ package io.netty.handler.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundHandler;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.ReferenceCountUtil;
@@ -27,7 +26,7 @@ import io.netty.util.internal.TypeParameterMatcher;
 
 
 /**
- * {@link ChannelOutboundHandlerAdapter} which encodes message in a stream-like fashion from one message to an
+ * {@link ChannelHandlerAdapter} which encodes message in a stream-like fashion from one message to an
  * {@link ByteBuf}.
  *
  *
@@ -43,7 +42,7 @@ import io.netty.util.internal.TypeParameterMatcher;
  *     }
  * </pre>
  */
-public abstract class MessageToByteEncoder<I> extends ChannelOutboundHandlerAdapter {
+public abstract class MessageToByteEncoder<I> extends ChannelHandlerAdapter {
 
     private final TypeParameterMatcher matcher;
     private final boolean preferDirect;

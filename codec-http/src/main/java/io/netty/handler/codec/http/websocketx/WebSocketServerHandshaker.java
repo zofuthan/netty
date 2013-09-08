@@ -27,7 +27,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.util.internal.EmptyArrays;
 import io.netty.util.internal.StringUtil;
 import io.netty.util.internal.logging.InternalLogger;
@@ -168,15 +167,8 @@ public abstract class WebSocketServerHandshaker {
                     }
                     ChannelHandlerContext ctx = p.context(HttpRequestDecoder.class);
                     if (ctx == null) {
-                        // this means the user use a HttpServerCodec
-                        ctx = p.context(HttpServerCodec.class);
-                        if (ctx == null) {
-                            promise.setFailure(
-                                    new IllegalStateException("No HttpDecoder and no HttpServerCodec in the pipeline"));
-                            return;
-                        }
-                        p.addBefore(ctx.name(), "wsdecoder", newWebsocketDecoder());
-                        p.replace(ctx.name(), "wsencoder", newWebSocketEncoder());
+                        promise.setFailure(
+                                new IllegalStateException("No HttpDecoder and no HttpServerCodec in the pipeline"));
                     } else {
                         p.replace(ctx.name(), "wsdecoder", newWebsocketDecoder());
 

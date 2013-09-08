@@ -45,7 +45,7 @@ import java.nio.channels.Channels;
  * You can keep the {@link ChannelHandlerContext} for later use, such as
  * triggering an event outside the handler methods, even from a different thread.
  * <pre>
- * public class MyHandler extends {@link ChannelDuplexHandler} {
+ * public class MyHandler extends {@link ChannelHandlerAdapter} {
  *
  *     <b>private {@link ChannelHandlerContext} ctx;</b>
  *
@@ -80,7 +80,7 @@ import java.nio.channels.Channels;
  * as how many times it is added to pipelines, regardless if it is added to the
  * same pipeline multiple times or added to different pipelines multiple times:
  * <pre>
- * public class FactorialHandler extends {@link ChannelInboundHandlerAdapter}&lt{@link Integer}&gt {
+ * public class FactorialHandler extends {@link ChannelHandlerAdapter}&lt{@link Integer}&gt {
  *
  *   private final {@link AttributeKey}&lt{@link Integer}&gt counter =
  *           new {@link AttributeKey}&lt{@link Integer}&gt("counter");

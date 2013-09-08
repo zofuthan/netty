@@ -24,49 +24,4 @@ import org.junit.Test;
 
 public class HttpServerCodecTest {
 
-    /**
-     * Testcase for https://github.com/netty/netty/issues/433
-     */
-    @Test
-    public void testUnfinishedChunkedHttpRequestIsLastFlag() throws Exception {
-
-        int maxChunkSize = 2000;
-        HttpServerCodec httpServerCodec = new HttpServerCodec(1000, 1000, maxChunkSize);
-        EmbeddedChannel decoderEmbedder = new EmbeddedChannel(httpServerCodec);
-
-        int totalContentLength = maxChunkSize * 5;
-        decoderEmbedder.writeInbound(Unpooled.copiedBuffer(
-                "PUT /test HTTP/1.1\r\n" +
-                "Content-Length: " + totalContentLength + "\r\n" +
-                "\r\n", CharsetUtil.UTF_8));
-
-        int offeredContentLength = (int) (maxChunkSize * 2.5);
-        decoderEmbedder.writeInbound(prepareDataChunk(offeredContentLength));
-        decoderEmbedder.finish();
-
-        HttpMessage httpMessage = (HttpMessage) decoderEmbedder.readInbound();
-        Assert.assertNotNull(httpMessage);
-
-        boolean empty = true;
-        int totalBytesPolled = 0;
-        for (;;) {
-            HttpContent httpChunk = (HttpContent) decoderEmbedder.readInbound();
-            if (httpChunk == null) {
-                break;
-            }
-            empty = false;
-            totalBytesPolled += httpChunk.content().readableBytes();
-            Assert.assertFalse(httpChunk instanceof LastHttpContent);
-        }
-        Assert.assertFalse(empty);
-        Assert.assertEquals(offeredContentLength, totalBytesPolled);
-    }
-
-    private static ByteBuf prepareDataChunk(int size) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < size; ++i) {
-            sb.append('a');
-        }
-        return Unpooled.copiedBuffer(sb.toString(), CharsetUtil.UTF_8);
-    }
 }

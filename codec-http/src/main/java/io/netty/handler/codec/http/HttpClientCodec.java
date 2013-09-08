@@ -17,10 +17,12 @@ package io.netty.handler.codec.http;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.CombinedChannelDuplexHandler;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.PrematureChannelClosureException;
 
+import java.net.SocketAddress;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
@@ -38,10 +40,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * If the {@link Channel} is closed and there are missing responses,
  * a {@link PrematureChannelClosureException} is thrown.
  *
- * @see HttpServerCodec
  */
 public final class HttpClientCodec
-        extends CombinedChannelDuplexHandler<HttpResponseDecoder, HttpRequestEncoder> {
+        implements ChannelHandler {
 
     /** A queue that is used for correlating a request and a response. */
     private final Queue<HttpMethod> queue = new ArrayDeque<HttpMethod>();
@@ -51,6 +52,8 @@ public final class HttpClientCodec
 
     private final AtomicLong requestResponseCounter = new AtomicLong();
     private final boolean failOnMissingResponse;
+    private final Decoder decoder;
+    private final Encoder encoder;
 
     /**
      * Creates a new instance with the default decoder options
@@ -62,11 +65,11 @@ public final class HttpClientCodec
     }
 
     public void setSingleDecode(boolean singleDecode) {
-        inboundHandler().setSingleDecode(singleDecode);
+        decoder.setSingleDecode(singleDecode);
     }
 
     public boolean isSingleDecode() {
-        return inboundHandler().isSingleDecode();
+        return decoder.isSingleDecode();
     }
 
     /**
@@ -78,7 +81,8 @@ public final class HttpClientCodec
 
     public HttpClientCodec(
             int maxInitialLineLength, int maxHeaderSize, int maxChunkSize, boolean failOnMissingResponse) {
-        init(new Decoder(maxInitialLineLength, maxHeaderSize, maxChunkSize), new Encoder());
+        decoder = new Decoder(maxInitialLineLength, maxHeaderSize, maxChunkSize);
+        encoder = new Encoder();
         this.failOnMissingResponse = failOnMissingResponse;
     }
 
@@ -208,5 +212,99 @@ public final class HttpClientCodec
                 }
             }
         }
+    }
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        try {
+            decoder.handlerAdded(ctx);
+        } finally {
+            encoder.handlerAdded(ctx);
+        }
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        try {
+            decoder.handlerRemoved(ctx);
+        } finally {
+            encoder.handlerRemoved(ctx);
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        ctx.fireExceptionCaught(cause);
+    }
+
+    @Override
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        decoder.channelRegistered(ctx);
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        decoder.channelActive(ctx);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        decoder.channelInactive(ctx);
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        decoder.channelRead(ctx, msg);
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        decoder.channelReadComplete(ctx);
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        decoder.userEventTriggered(ctx, evt);
+    }
+
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+        decoder.channelWritabilityChanged(ctx);
+    }
+
+    @Override
+    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws Exception {
+        encoder.bind(ctx, localAddress, promise);
+    }
+
+    @Override
+    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress,
+                        ChannelPromise promise) throws Exception {
+        encoder.connect(ctx, remoteAddress, localAddress, promise);
+    }
+
+    @Override
+    public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+        encoder.disconnect(ctx, promise);
+    }
+
+    @Override
+    public void close(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+        encoder.close(ctx, promise);
+    }
+
+    @Override
+    public void read(ChannelHandlerContext ctx) throws Exception {
+        encoder.read(ctx);
+    }
+
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        encoder.write(ctx, msg, promise);
+    }
+
+    @Override
+    public void flush(ChannelHandlerContext ctx) throws Exception {
+        encoder.flush(ctx);
     }
 }

@@ -76,7 +76,7 @@ public class ReentrantChannelTest extends BaseChannelTest {
         clientChannel.config().setWriteBufferLowWaterMark(512);
         clientChannel.config().setWriteBufferHighWaterMark(1024);
 
-        clientChannel.pipeline().addLast(new ChannelInboundHandlerAdapter() {
+        clientChannel.pipeline().addLast(new ChannelHandlerAdapter() {
             @Override
             public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
                 if (!ctx.channel().isWritable()) {
@@ -111,7 +111,7 @@ public class ReentrantChannelTest extends BaseChannelTest {
 
         Channel clientChannel = cb.connect(addr).sync().channel();
 
-        clientChannel.pipeline().addLast(new ChannelOutboundHandlerAdapter() {
+        clientChannel.pipeline().addLast(new ChannelHandlerAdapter() {
 
             int writeCount;
             int flushCount;
@@ -168,7 +168,7 @@ public class ReentrantChannelTest extends BaseChannelTest {
 
         Channel clientChannel = cb.connect(addr).sync().channel();
 
-        clientChannel.pipeline().addLast(new ChannelOutboundHandlerAdapter() {
+        clientChannel.pipeline().addLast(new ChannelHandlerAdapter() {
 
             @Override
             public void write(final ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
@@ -206,7 +206,7 @@ public class ReentrantChannelTest extends BaseChannelTest {
 
         Channel clientChannel = cb.connect(addr).sync().channel();
 
-        clientChannel.pipeline().addLast(new ChannelOutboundHandlerAdapter() {
+        clientChannel.pipeline().addLast(new ChannelHandlerAdapter() {
 
             @Override
             public void flush(ChannelHandlerContext ctx) throws Exception {

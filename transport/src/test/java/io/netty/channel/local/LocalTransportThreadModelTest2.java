@@ -20,8 +20,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import org.junit.Test;
 
@@ -93,7 +93,7 @@ public class LocalTransportThreadModelTest2 {
     }
 
     @Sharable
-    static class LocalHander extends ChannelInboundHandlerAdapter {
+    static class LocalHander extends ChannelHandlerAdapter {
         private final String name;
 
         public volatile ChannelFuture lastWriteFuture;

@@ -907,7 +907,7 @@ final class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     // A special catch-all handler that handles both bytes and messages.
-    static final class TailHandler implements ChannelInboundHandler {
+    static final class TailHandler extends ChannelHandlerAdapter {
 
         @Override
         public void channelRegistered(ChannelHandlerContext ctx) throws Exception { }
@@ -952,22 +952,12 @@ final class DefaultChannelPipeline implements ChannelPipeline {
         public void channelReadComplete(ChannelHandlerContext ctx) throws Exception { }
     }
 
-    static final class HeadHandler implements ChannelOutboundHandler {
+    static final class HeadHandler extends ChannelHandlerAdapter {
 
         protected final Unsafe unsafe;
 
         protected HeadHandler(Unsafe unsafe) {
             this.unsafe = unsafe;
-        }
-
-        @Override
-        public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-            // NOOP
-        }
-
-        @Override
-        public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-            // NOOP
         }
 
         @Override
