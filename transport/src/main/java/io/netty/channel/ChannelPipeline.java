@@ -37,14 +37,14 @@ import java.util.NoSuchElementException;
  *
  * <h3>Creation of a pipeline</h3>
  *
- * Each channel has its own pipeline and it is created automatically when a new channel is created.
+ * Each channel has its own pipeline that is created automatically when a new channel is created.
  *
  * <h3>How an event flows in a pipeline</h3>
  *
- * The following diagram describes how I/O events are processed by {@link ChannelHandler}s in a {@link ChannelPipeline}
- * typically. An I/O event is handled by either a {@link ChannelInboundHandler} or a {@link ChannelOutboundHandler}
- * and be forwarded to its closest handler by calling the event propagation methods defined in
- * {@link ChannelHandlerContext}, such as {@link ChannelHandlerContext#fireChannelRead(Object)} and
+ * The following diagram describes how I/O events are typically processed by {@link ChannelHandler}s in a 
+ * {@link ChannelPipeline}.  An I/O event is handled by either a {@link ChannelInboundHandler} or a 
+ * {@link ChannelOutboundHandler} and is forwarded to its closest handler by calling the event propagation methods 
+ * defined in {@link ChannelHandlerContext}, such as {@link ChannelHandlerContext#fireChannelRead(Object)} and
  * {@link ChannelHandlerContext#write(Object)}.
  *
  * <pre>
@@ -96,7 +96,7 @@ import java.util.NoSuchElementException;
  * An outbound event is handled by the outbound handler in the top-down direction as shown on the right side of the
  * diagram.  An outbound handler usually generates or transforms the outbound traffic such as write requests.
  * If an outbound event goes beyond the bottom outbound handler, it is handled by an I/O thread associated with the
- * {@link Channel}. The I/O thread often performs the actual output operation such as
+ * {@link Channel}.  The I/O thread often performs the actual output operation such as
  * {@link SocketChannel#write(ByteBuffer)}.
  * <p>
  * For example, let us assume that we created the following pipeline:
@@ -108,8 +108,8 @@ import java.util.NoSuchElementException;
  * p.addLast("4", new OutboundHandlerB());
  * p.addLast("5", new InboundOutboundHandlerX());
  * </pre>
- * In the example above, the class whose name starts with {@code Inbound} means it is an inbound handler.
- * The class whose name starts with {@code Outbound} means it is a outbound handler.
+ * In the example above, a class whose name starts with {@code Inbound}  is an inbound handler.  A class whose name 
+ * starts with {@code Outbound} is a outbound handler.
  * <p>
  * In the given example configuration, the handler evaluation order is 1, 2, 3, 4, 5 when an event goes inbound.
  * When an event goes outbound, the order is 5, 4, 3, 2, 1.  On top of this principle, {@link ChannelPipeline} skips
@@ -125,8 +125,8 @@ import java.util.NoSuchElementException;
  *
  * <h3>Forwarding an event to the next handler</h3>
  *
- * As you might noticed in the diagram shows, a handler has to invoke the event propagation methods in
- * {@link ChannelHandlerContext} to forward an event to its next handler.  Those methods include:
+ * A handler must invoke the event propagation methods in {@link ChannelHandlerContext} to forward an event to the
+ * next handler.  These methods include:
  * <ul>
  * <li>Inbound event propagation methods:
  *     <ul>
@@ -197,11 +197,9 @@ import java.util.NoSuchElementException;
  * pipeline.addLast("decoder", new MyProtocolDecoder());
  * pipeline.addLast("encoder", new MyProtocolEncoder());
  *
- * // Tell the pipeline to run MyBusinessLogicHandler's event handler methods
- * // in a different thread than an I/O thread so that the I/O thread is not blocked by
- * // a time-consuming task.
- * // If your business logic is fully asynchronous or finished very quickly, you don't
- * // need to specify a group.
+ * // Tell the pipeline to run MyBusinessLogicHandler's event handler methods in a different thread than an I/O thread 
+ * // so that the I/O thread is not blocked by a time-consuming task.  If your business logic is fully asynchronous or 
+ * //  finished very quickly, you don't need to specify a group.
  * pipeline.addLast(group, "handler", new MyBusinessLogicHandler());
  * </pre>
  *
@@ -271,8 +269,7 @@ public interface ChannelPipeline
     ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler);
 
     /**
-     * Inserts a {@link ChannelHandler} before an existing handler of this
-     * pipeline.
+     * Inserts a {@link ChannelHandler} before an existing handler of this pipeline.
      *
      * @param baseName  the name of the existing handler
      * @param name      the name of the handler to insert before
@@ -288,8 +285,7 @@ public interface ChannelPipeline
     ChannelPipeline addBefore(String baseName, String name, ChannelHandler handler);
 
     /**
-     * Inserts a {@link ChannelHandler} before an existing handler of this
-     * pipeline.
+     * Inserts a {@link ChannelHandler} before an existing handler of this pipeline.
      *
      * @param group     the {@link EventExecutorGroup} which will be used to execute the {@link ChannelHandler}
      *                  methods
@@ -307,8 +303,7 @@ public interface ChannelPipeline
     ChannelPipeline addBefore(EventExecutorGroup group, String baseName, String name, ChannelHandler handler);
 
     /**
-     * Inserts a {@link ChannelHandler} after an existing handler of this
-     * pipeline.
+     * Inserts a {@link ChannelHandler} after an existing handler of this pipeline.
      *
      * @param baseName  the name of the existing handler
      * @param name      the name of the handler to insert after
@@ -324,8 +319,7 @@ public interface ChannelPipeline
     ChannelPipeline addAfter(String baseName, String name, ChannelHandler handler);
 
     /**
-     * Inserts a {@link ChannelHandler} after an existing handler of this
-     * pipeline.
+     * Inserts a {@link ChannelHandler} after an existing handler of this pipeline.
      *
      * @param group     the {@link EventExecutorGroup} which will be used to execute the {@link ChannelHandler}
      *                  methods
@@ -346,7 +340,6 @@ public interface ChannelPipeline
      * Inserts a {@link ChannelHandler}s at the first position of this pipeline.
      *
      * @param handlers  the handlers to insert first
-     *
      */
     ChannelPipeline addFirst(ChannelHandler... handlers);
 
@@ -498,8 +491,7 @@ public interface ChannelPipeline
      *         if the specified old handler, new name, or new handler is
      *         {@code null}
      */
-    <T extends ChannelHandler> T replace(Class<T> oldHandlerType, String newName,
-                                         ChannelHandler newHandler);
+    <T extends ChannelHandler> T replace(Class<T> oldHandlerType, String newName, ChannelHandler newHandler);
 
     /**
      * Returns the first {@link ChannelHandler} in this pipeline.
@@ -530,8 +522,7 @@ public interface ChannelPipeline
     ChannelHandlerContext lastContext();
 
     /**
-     * Returns the {@link ChannelHandler} with the specified name in this
-     * pipeline.
+     * Returns the {@link ChannelHandler} with the specified name in this pipeline.
      *
      * @return the handler with the specified name.
      *         {@code null} if there's no such handler in this pipeline.
@@ -539,8 +530,7 @@ public interface ChannelPipeline
     ChannelHandler get(String name);
 
     /**
-     * Returns the {@link ChannelHandler} of the specified type in this
-     * pipeline.
+     * Returns the {@link ChannelHandler} of the specified type in this pipeline.
      *
      * @return the handler of the specified handler type.
      *         {@code null} if there's no such handler in this pipeline.
@@ -548,8 +538,7 @@ public interface ChannelPipeline
     <T extends ChannelHandler> T get(Class<T> handlerType);
 
     /**
-     * Returns the context object of the specified {@link ChannelHandler} in
-     * this pipeline.
+     * Returns the context object of the specified {@link ChannelHandler} in this pipeline.
      *
      * @return the context object of the specified handler.
      *         {@code null} if there's no such handler in this pipeline.
@@ -557,8 +546,7 @@ public interface ChannelPipeline
     ChannelHandlerContext context(ChannelHandler handler);
 
     /**
-     * Returns the context object of the {@link ChannelHandler} with the
-     * specified name in this pipeline.
+     * Returns the context object of the {@link ChannelHandler} with the specified name in this pipeline.
      *
      * @return the context object of the handler with the specified name.
      *         {@code null} if there's no such handler in this pipeline.
@@ -566,8 +554,7 @@ public interface ChannelPipeline
     ChannelHandlerContext context(String name);
 
     /**
-     * Returns the context object of the {@link ChannelHandler} of the
-     * specified type in this pipeline.
+     * Returns the context object of the {@link ChannelHandler} of the specified type in this pipeline.
      *
      * @return the context object of the handler of the specified type.
      *         {@code null} if there's no such handler in this pipeline.
