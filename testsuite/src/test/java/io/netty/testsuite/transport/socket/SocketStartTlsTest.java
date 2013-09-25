@@ -21,6 +21,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ExecutingChannelHandler;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LineBasedFrameDecoder;
@@ -77,7 +78,7 @@ public class SocketStartTlsTest extends AbstractSocketTest {
                 ChannelPipeline p = sch.pipeline();
                 p.addLast("logger", new LoggingHandler(LOG_LEVEL));
                 p.addLast(new LineBasedFrameDecoder(64), new StringDecoder(), new StringEncoder());
-                p.addLast(executor, sh);
+                p.addLast(new ExecutingChannelHandler(executor.next(), sh));
             }
         });
 
@@ -87,7 +88,7 @@ public class SocketStartTlsTest extends AbstractSocketTest {
                 ChannelPipeline p = sch.pipeline();
                 p.addLast("logger", new LoggingHandler(LOG_LEVEL));
                 p.addLast(new LineBasedFrameDecoder(64), new StringDecoder(), new StringEncoder());
-                p.addLast(executor, ch);
+                p.addLast(new ExecutingChannelHandler(executor.next(), ch));
             }
         });
 

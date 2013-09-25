@@ -20,7 +20,6 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.DefaultAttributeMap;
 import io.netty.util.Recycler;
 import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.internal.StringUtil;
 
 import java.net.SocketAddress;
@@ -47,9 +46,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     private Runnable invokeFlushTask;
     private Runnable invokeChannelWritableStateChangedTask;
 
-    DefaultChannelHandlerContext(DefaultChannelPipeline pipeline, EventExecutorGroup group, String name,
-            ChannelHandler handler) {
-
+    DefaultChannelHandlerContext(DefaultChannelPipeline pipeline, String name, ChannelHandler handler) {
         if (name == null) {
             throw new NullPointerException("name");
         }
@@ -60,19 +57,14 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
         channel = pipeline.channel;
         this.pipeline = pipeline;
         this.name = name;
-        this.handler = handler;
 
-        if (group != null) {
-            // Pin one of the child executors once and remember it so that the same child executor
-            // is used to fire events for the same channel.
-            EventExecutor childExecutor = pipeline.childExecutors.get(group);
-            if (childExecutor == null) {
-                childExecutor = group.next();
-                pipeline.childExecutors.put(group, childExecutor);
-            }
-            executor = childExecutor;
+        if (handler instanceof ExecutingChannelHandler) {
+            ExecutingChannelHandler ech = (ExecutingChannelHandler) handler;
+            this.executor = ech.getExecutor();
+            this.handler = ech.getHandler();
         } else {
-            executor = null;
+            this.executor = null;
+            this.handler = handler;
         }
     }
 

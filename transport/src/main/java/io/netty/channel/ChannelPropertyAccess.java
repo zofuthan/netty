@@ -17,7 +17,6 @@ package io.netty.channel;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
 
 /**
