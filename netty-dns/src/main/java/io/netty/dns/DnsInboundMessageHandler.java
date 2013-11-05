@@ -31,7 +31,7 @@ public class DnsInboundMessageHandler extends SimpleChannelInboundHandler<DnsRes
      * finished.
      */
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, DnsResponse response) throws Exception {
+    public void messageReceived(ChannelHandlerContext ctx, DnsResponse response) throws Exception {
         DnsCallback.finish(response);
     }
 

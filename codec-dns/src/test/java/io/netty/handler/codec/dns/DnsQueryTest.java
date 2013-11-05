@@ -49,7 +49,6 @@ public class DnsQueryTest {
             case 4:
                 query.addQuestion(new DnsQuestion("example.com", DnsEntry.TYPE_CNAME));
                 break;
-
             }
             Assert.assertEquals("Invalid question count, expected 1.", 1, query.getHeader().questionCount());
             Assert.assertEquals("Invalid answer count, expected 0.", 0, query.getHeader().answerCount());

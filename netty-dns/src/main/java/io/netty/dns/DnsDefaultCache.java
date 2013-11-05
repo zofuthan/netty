@@ -30,7 +30,8 @@ import java.util.Set;
  */
 public final class DnsDefaultCache implements DnsCachingStrategy {
 
-    private final Map<String, Map<Integer, Set<Record<?>>>> recordCache = new HashMap<String, Map<Integer, Set<Record<?>>>>();
+    private final Map<String, Map<Integer, Set<Record<?>>>> recordCache =
+            new HashMap<String, Map<Integer, Set<Record<?>>>>();
 
     /**
      * Returns a <strong>single</strong> record for the given domain {@code name} and record {@code type}, or null if
