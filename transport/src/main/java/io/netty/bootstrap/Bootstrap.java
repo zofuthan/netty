@@ -26,6 +26,7 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.ServerChannel;
 import io.netty.util.AttributeKey;
 import io.netty.util.internal.StringUtil;
+import io.netty.util.concurrent.Future;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
@@ -37,11 +38,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * A {@link Bootstrap} that makes it easy to bootstrap a {@link Channel} to use
- * for clients.
+ * A {@link Bootstrap} that makes it easy to bootstrap a {@link Channel} to use for clients.
  *
- * <p>The {@link #bind()} methods are useful in combination with connectionless transports such as datagram (UDP).
- * For regular TCP connections, please use the provided {@link #connect()} methods.</p>
+ * <p>
+ * The {@link #bind()} methods are useful in combination with connectionless transports such as datagram (UDP). For
+ * regular TCP connections, please use the provided {@link #connect()} methods.
+ * </p>
  */
 public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
 
@@ -51,7 +53,8 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
 
     private volatile SocketAddress remoteAddress;
 
-    public Bootstrap() { }
+    public Bootstrap() {
+    }
 
     private Bootstrap(Bootstrap bootstrap) {
         super(bootstrap);
@@ -104,7 +107,9 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
      * is called.
      */
     public Bootstrap remoteAddress(SocketAddress remoteAddress) {
+        pendingQueries.remove(this.remoteAddress);
         this.remoteAddress = remoteAddress;
+        queryDns(remoteAddress, true);
         return this;
     }
 
@@ -112,16 +117,14 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
      * @see {@link #remoteAddress(SocketAddress)}
      */
     public Bootstrap remoteAddress(String inetHost, int inetPort) {
-        remoteAddress = new InetSocketAddress(inetHost, inetPort);
-        return this;
+        return remoteAddress(InetSocketAddress.createUnresolved(inetHost, inetPort));
     }
 
     /**
      * @see {@link #remoteAddress(SocketAddress)}
      */
     public Bootstrap remoteAddress(InetAddress inetHost, int inetPort) {
-        remoteAddress = new InetSocketAddress(inetHost, inetPort);
-        return this;
+        return remoteAddress(new InetSocketAddress(inetHost, inetPort));
     }
 
     /**
@@ -141,7 +144,7 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
      * Connect a {@link Channel} to the remote peer.
      */
     public ChannelFuture connect(String inetHost, int inetPort) {
-        return connect(new InetSocketAddress(inetHost, inetPort));
+        return connect(InetSocketAddress.createUnresolved(inetHost, inetPort));
     }
 
     /**
@@ -158,7 +161,6 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
         if (remoteAddress == null) {
             throw new NullPointerException("remoteAddress");
         }
-
         validate();
         return doConnect(remoteAddress, localAddress());
     }
@@ -178,6 +180,23 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
      * @see {@link #connect()}
      */
     private ChannelFuture doConnect(final SocketAddress remoteAddress, final SocketAddress localAddress) {
+        final Future<InetAddress> asyncRemote = queryDns(remoteAddress, false);
+        pendingQueries.remove(remoteAddress);
+        final Future<InetAddress> asyncLocal = queryDns(localAddress, false);
+        pendingQueries.remove(localAddress);
+        final int remotePort, localPort;
+        if (asyncRemote != null && remoteAddress instanceof InetSocketAddress) {
+            InetSocketAddress address = (InetSocketAddress) remoteAddress;
+            remotePort = address.getPort();
+        } else {
+            remotePort = -1;
+        }
+        if (asyncLocal != null && localAddress instanceof InetSocketAddress) {
+            InetSocketAddress address = (InetSocketAddress) localAddress;
+            localPort = address.getPort();
+        } else {
+            localPort = -1;
+        }
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
@@ -186,12 +205,14 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
 
         final ChannelPromise promise = channel.newPromise();
         if (regFuture.isDone()) {
-            doConnect0(regFuture, channel, remoteAddress, localAddress, promise);
+            doConnect0(regFuture, channel, asyncRemote == null ? remoteAddress : asyncRemote, remotePort,
+                    asyncLocal == null ? localAddress : asyncLocal, localPort, promise);
         } else {
             regFuture.addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
-                    doConnect0(regFuture, channel, remoteAddress, localAddress, promise);
+                    doConnect0(regFuture, channel, asyncRemote == null ? remoteAddress : asyncRemote, remotePort,
+                            asyncLocal == null ? localAddress : asyncLocal, localPort, promise);
                 }
             });
         }
@@ -199,20 +220,42 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
         return promise;
     }
 
-    private static void doConnect0(
-            final ChannelFuture regFuture, final Channel channel,
-            final SocketAddress remoteAddress, final SocketAddress localAddress, final ChannelPromise promise) {
+    private static void doConnect0(final ChannelFuture regFuture, final Channel channel, final Object remoteAddress,
+            final int remotePort, final Object localAddress, final int localPort, final ChannelPromise promise) {
 
-        // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
+        // This method is invoked before channelRegistered() is triggered. Give user handlers a chance to set up
         // the pipeline in its channelRegistered() implementation.
         channel.eventLoop().execute(new Runnable() {
+            @SuppressWarnings("unchecked")
             @Override
             public void run() {
                 if (regFuture.isSuccess()) {
-                    if (localAddress == null) {
-                        channel.connect(remoteAddress, promise);
+                    SocketAddress remote;
+                    if (remoteAddress instanceof Future) {
+                        try {
+                            remote = new InetSocketAddress(((Future<InetAddress>) remoteAddress).get(), remotePort);
+                        } catch (Exception e) {
+                            remote = null;
+                            logger.error("Future failed when resolving address", e);
+                        }
                     } else {
-                        channel.connect(remoteAddress, localAddress, promise);
+                        remote = (SocketAddress) remoteAddress;
+                    }
+                    if (localAddress == null) {
+                        channel.connect(remote, promise);
+                    } else {
+                        SocketAddress local;
+                        if (localAddress instanceof Future) {
+                            try {
+                                local = new InetSocketAddress(((Future<InetAddress>) localAddress).get(), localPort);
+                            } catch (Exception e) {
+                                local = null;
+                                logger.error("Future failed when resolving address", e);
+                            }
+                        } else {
+                            local = (SocketAddress) localAddress;
+                        }
+                        channel.connect(remote, local, promise);
                     }
                     promise.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
                 } else {
@@ -230,7 +273,7 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
 
         final Map<ChannelOption<?>, Object> options = options();
         synchronized (options) {
-            for (Entry<ChannelOption<?>, Object> e: options.entrySet()) {
+            for (Entry<ChannelOption<?>, Object> e : options.entrySet()) {
                 try {
                     if (!channel.config().setOption((ChannelOption<Object>) e.getKey(), e.getValue())) {
                         logger.warn("Unknown channel option: " + e);
@@ -243,7 +286,7 @@ public final class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
 
         final Map<AttributeKey<?>, Object> attrs = attrs();
         synchronized (attrs) {
-            for (Entry<AttributeKey<?>, Object> e: attrs.entrySet()) {
+            for (Entry<AttributeKey<?>, Object> e : attrs.entrySet()) {
                 channel.attr((AttributeKey<Object>) e.getKey()).set(e.getValue());
             }
         }
