@@ -15,12 +15,26 @@
  */
 package io.netty.channel;
 
-import io.netty.channel.socket.ServerSocketChannel;
+import java.util.concurrent.Executor;
 
-/**
- * A {@link Channel} that accepts an incoming connection attempt and creates its child {@link Channel}s by accepting
- * them.  {@link ServerSocketChannel} is a good example.
- */
-public interface ServerChannel extends Channel {
-    EventLoopGroup childEventLoopGroup();
+public class DefaultEventLoop extends SingleThreadEventLoop {
+
+    public DefaultEventLoop(EventLoopGroup parent, Executor executor) {
+        super(parent, executor, true);
+    }
+
+    @Override
+    protected void run() {
+        for (;;) {
+            Runnable task = takeTask();
+            if (task != null) {
+                task.run();
+                updateLastExecutionTime();
+            }
+
+            if (confirmShutdown()) {
+                break;
+            }
+        }
+    }
 }

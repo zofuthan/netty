@@ -166,7 +166,7 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, ChannelPr
      *   <li>{@link #localAddress()}</li>
      *   <li>{@link #remoteAddress()}</li>
      *   <li>{@link #closeForcibly()}</li>
-     *   <li>{@link #register(EventLoop, ChannelPromise)}</li>
+     *   <li>{@link #register(ChannelPromise)}</li>
      *   <li>{@link #voidPromise()}</li>
      * </ul>
      */
@@ -184,7 +184,7 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, ChannelPr
         SocketAddress remoteAddress();
 
         /**
-         * Register the {@link Channel} of the {@link ChannelPromise} with the {@link EventLoop} and notify
+         * Register the {@link Channel} of the {@link ChannelPromise} and notify
          * the {@link ChannelFuture} once the registration was complete.
          */
         void register(ChannelPromise promise);
