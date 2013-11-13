@@ -66,7 +66,7 @@ import java.net.SocketAddress;
  * operations.  For example, with the old I/O datagram transport, multicast
  * join / leave operations are provided by {@link DatagramChannel}.
  */
-public interface Channel extends AttributeMap, ChannelOutboundInvoker, ChannelPropertyAccess, Comparable<Channel> {
+public interface Channel extends AttributeMap, ChannelOutboundOps, ChannelPropertyAccess, Comparable<Channel> {
 
     /**
      * Return the {@link EventLoop} this {@link Channel} was registered too.

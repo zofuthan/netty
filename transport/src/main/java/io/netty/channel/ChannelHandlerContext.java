@@ -29,9 +29,8 @@ import java.nio.channels.Channels;
  *
  * <h3>Notify</h3>
  *
- * You can notify the closest handler in the
- * same {@link ChannelPipeline} by calling one of the various methods which are listed in {@link ChannelInboundInvoker}
- * and {@link ChannelOutboundInvoker}.  Please refer to {@link ChannelPipeline} to understand how an event flows.
+ * You can notify the closest handler in the same {@link ChannelPipeline} by calling one of the various method.
+ * Please refer to {@link ChannelPipeline} to understand how an event flows.
  *
  * <h3>Modifying a pipeline</h3>
  *
@@ -122,8 +121,7 @@ import java.nio.channels.Channels;
  * the operation in your application.
  */
 public interface ChannelHandlerContext
-         extends AttributeMap, ChannelPropertyAccess,
-                 ChannelInboundInvoker, ChannelOutboundInvoker {
+         extends AttributeMap, ChannelPropertyAccess, ChannelInboundOps, ChannelOutboundOps {
 
     /**
      * Return the {@link Channel} which is bound to the {@link ChannelHandlerContext}.
