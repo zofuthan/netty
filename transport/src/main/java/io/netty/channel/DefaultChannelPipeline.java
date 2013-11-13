@@ -314,7 +314,7 @@ final class DefaultChannelPipeline implements ChannelPipeline {
         if (invoker == null) {
             EventExecutor executor = group.next();
             if (executor instanceof EventLoop) {
-                invoker = ((EventLoop) invoker).asInvoker();
+                invoker = ((EventLoop) executor).asInvoker();
             } else {
                 invoker = new DefaultChannelHandlerInvoker(executor);
             }
