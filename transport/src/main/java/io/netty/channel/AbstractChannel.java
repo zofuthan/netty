@@ -363,6 +363,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         private boolean inFlush0;
 
         @Override
+        public final ChannelHandlerInvoker invoker() {
+            return eventLoop.asInvoker();
+        }
+
+        @Override
         public final ChannelOutboundBuffer outboundBuffer() {
             return outboundBuffer;
         }

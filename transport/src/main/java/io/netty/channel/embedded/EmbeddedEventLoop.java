@@ -17,7 +17,9 @@ package io.netty.channel.embedded;
 
 import io.netty.channel.AbstractEventLoop;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelHandlerInvoker;
 import io.netty.channel.ChannelPromise;
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 
 import java.net.SocketAddress;
@@ -25,9 +27,9 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
-import static io.netty.channel.EventLoopUtil.*;
+import static io.netty.channel.ChannelHandlerInvokerUtil.*;
 
-final class EmbeddedEventLoop extends AbstractEventLoop {
+final class EmbeddedEventLoop extends AbstractEventLoop implements ChannelHandlerInvoker {
 
     private final Queue<Runnable> tasks = new ArrayDeque<Runnable>(2);
 
@@ -98,6 +100,16 @@ final class EmbeddedEventLoop extends AbstractEventLoop {
     @Override
     public boolean inEventLoop(Thread thread) {
         return true;
+    }
+
+    @Override
+    public ChannelHandlerInvoker asInvoker() {
+        return this;
+    }
+
+    @Override
+    public EventExecutor executor() {
+        return this;
     }
 
     @Override

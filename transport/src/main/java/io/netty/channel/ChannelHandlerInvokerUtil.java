@@ -21,9 +21,9 @@ import java.net.SocketAddress;
 import static io.netty.channel.DefaultChannelPipeline.*;
 
 /**
- * A set of helper methods for easier implementation of custom {@link EventLoop} implementation.
+ * A set of helper methods for easier implementation of custom {@link ChannelHandlerInvoker} implementation.
  */
-public final class EventLoopUtil {
+public final class ChannelHandlerInvokerUtil {
 
     public static void invokeChannelRegisteredNow(ChannelHandlerContext ctx) {
         try {
@@ -203,5 +203,5 @@ public final class EventLoopUtil {
         return false;
     }
 
-    private EventLoopUtil() { }
+    private ChannelHandlerInvokerUtil() { }
 }

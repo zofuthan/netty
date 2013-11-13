@@ -19,6 +19,7 @@ package io.netty.channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.AttributeMap;
+import io.netty.util.concurrent.EventExecutor;
 
 import java.nio.channels.Channels;
 
@@ -129,11 +130,9 @@ public interface ChannelHandlerContext
     Channel channel();
 
     /**
-     * The {@link EventLoop} that is used to dispatch the events. This can also be used to directly
-     * submit tasks that get executed in the event loop. For more information please refer to the
-     * {@link EventLoop} javadoc.
+     * Returns the {@link EventExecutor} which is used to execute an arbitrary task.
      */
-    EventLoop executor();
+    EventExecutor executor();
 
     /**
      * The unique name of the {@link ChannelHandlerContext}.The name was used when then {@link ChannelHandler}
@@ -150,7 +149,7 @@ public interface ChannelHandlerContext
     /**
      * Return {@code true} if the {@link ChannelHandler} which belongs to this {@link ChannelHandler} was removed
      * from the {@link ChannelPipeline}. Note that this method is only meant to be called from with in the
-     * {@link EventLoop}.
+     * {@link EventExecutor}.
      */
     boolean isRemoved();
 

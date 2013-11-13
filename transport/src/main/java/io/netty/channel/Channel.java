@@ -163,6 +163,7 @@ public interface Channel extends AttributeMap, ChannelOutboundOps, ChannelProper
      * are only provided to implement the actual transport, and must be invoked from an I/O thread except for the
      * following methods:
      * <ul>
+     *   <li>{@link #invoker()}</li>
      *   <li>{@link #localAddress()}</li>
      *   <li>{@link #remoteAddress()}</li>
      *   <li>{@link #closeForcibly()}</li>
@@ -171,6 +172,12 @@ public interface Channel extends AttributeMap, ChannelOutboundOps, ChannelProper
      * </ul>
      */
     interface Unsafe {
+
+        /**
+         * Returns the {@link ChannelHandlerInvoker} which is used by default unless specified by a user.
+         */
+        ChannelHandlerInvoker invoker();
+
         /**
          * Return the {@link SocketAddress} to which is bound local or
          * {@code null} if none.

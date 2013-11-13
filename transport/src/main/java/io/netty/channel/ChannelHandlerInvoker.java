@@ -16,6 +16,8 @@
 
 package io.netty.channel;
 
+import io.netty.util.concurrent.EventExecutor;
+
 import java.net.SocketAddress;
 
 /**
@@ -24,6 +26,11 @@ import java.net.SocketAddress;
  * implementation.
  */
 public interface ChannelHandlerInvoker {
+
+    /**
+     * Returns the {@link EventExecutor} which is used to execute an arbitrary task.
+     */
+    EventExecutor executor();
 
     /**
      * Invokes {@link ChannelInboundHandler#channelRegistered(ChannelHandlerContext)}. This method is not for a user

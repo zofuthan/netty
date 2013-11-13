@@ -34,7 +34,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
 
     // Will be set to null if no child executor should be used, otherwise it will be set to the
     // child executor.
-    final EventLoop executor;
+    final ChannelHandlerInvoker invoker;
     private ChannelFuture succeededFuture;
 
     // Lazily instantiated tasks used to trigger events to a handler with different executor.
@@ -43,8 +43,8 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     Runnable invokeFlushTask;
     Runnable invokeChannelWritableStateChangedTask;
 
-    DefaultChannelHandlerContext(DefaultChannelPipeline pipeline, EventLoop executor, String name,
-            ChannelHandler handler) {
+    DefaultChannelHandlerContext(
+            DefaultChannelPipeline pipeline, ChannelHandlerInvoker invoker, String name, ChannelHandler handler) {
 
         if (name == null) {
             throw new NullPointerException("name");
@@ -57,7 +57,12 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
         this.pipeline = pipeline;
         this.name = name;
         this.handler = handler;
-        this.executor = executor;
+
+        if (invoker == null) {
+            this.invoker = channel.unsafe().invoker();
+        } else {
+            this.invoker = invoker;
+        }
     }
 
     /** Invocation initiated by {@link DefaultChannelPipeline#teardownAll()}}. */
@@ -101,12 +106,8 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     }
 
     @Override
-    public EventLoop executor() {
-        if (executor == null) {
-            return channel().eventLoop();
-        } else {
-            return executor;
-        }
+    public EventExecutor executor() {
+        return invoker.executor();
     }
 
     @Override
@@ -122,56 +123,56 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     @Override
     public ChannelHandlerContext fireChannelRegistered() {
         DefaultChannelHandlerContext next = findContextInbound();
-        next.executor().invokeChannelRegistered(next);
+        next.invoker.invokeChannelRegistered(next);
         return this;
     }
 
     @Override
     public ChannelHandlerContext fireChannelActive() {
         DefaultChannelHandlerContext next = findContextInbound();
-        next.executor().invokeChannelActive(next);
+        next.invoker.invokeChannelActive(next);
         return this;
     }
 
     @Override
     public ChannelHandlerContext fireChannelInactive() {
         DefaultChannelHandlerContext next = findContextInbound();
-        next.executor().invokeChannelInactive(next);
+        next.invoker.invokeChannelInactive(next);
         return this;
     }
 
     @Override
     public ChannelHandlerContext fireExceptionCaught(Throwable cause) {
         DefaultChannelHandlerContext next = this.next;
-        next.executor().invokeExceptionCaught(next, cause);
+        next.invoker.invokeExceptionCaught(next, cause);
         return this;
     }
 
     @Override
     public ChannelHandlerContext fireUserEventTriggered(Object event) {
         DefaultChannelHandlerContext next = findContextInbound();
-        next.executor().invokeUserEventTriggered(next, event);
+        next.invoker.invokeUserEventTriggered(next, event);
         return this;
     }
 
     @Override
     public ChannelHandlerContext fireChannelRead(Object msg) {
         DefaultChannelHandlerContext next = findContextInbound();
-        next.executor().invokeChannelRead(next, msg);
+        next.invoker.invokeChannelRead(next, msg);
         return this;
     }
 
     @Override
     public ChannelHandlerContext fireChannelReadComplete() {
         DefaultChannelHandlerContext next = findContextInbound();
-        next.executor().invokeChannelReadComplete(next);
+        next.invoker.invokeChannelReadComplete(next);
         return this;
     }
 
     @Override
     public ChannelHandlerContext fireChannelWritabilityChanged() {
         DefaultChannelHandlerContext next = findContextInbound();
-        next.executor().invokeChannelWritabilityChanged(next);
+        next.invoker.invokeChannelWritabilityChanged(next);
         return this;
     }
 
@@ -203,7 +204,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     @Override
     public ChannelFuture bind(final SocketAddress localAddress, final ChannelPromise promise) {
         DefaultChannelHandlerContext next = findContextOutbound();
-        next.executor().invokeBind(next, localAddress, promise);
+        next.invoker.invokeBind(next, localAddress, promise);
         return promise;
     }
 
@@ -215,7 +216,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     @Override
     public ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
         DefaultChannelHandlerContext next = findContextOutbound();
-        next.executor().invokeConnect(next, remoteAddress, localAddress, promise);
+        next.invoker.invokeConnect(next, remoteAddress, localAddress, promise);
         return promise;
     }
 
@@ -226,21 +227,21 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
         }
 
         DefaultChannelHandlerContext next = findContextOutbound();
-        next.executor().invokeDisconnect(next, promise);
+        next.invoker.invokeDisconnect(next, promise);
         return promise;
     }
 
     @Override
     public ChannelFuture close(ChannelPromise promise) {
         DefaultChannelHandlerContext next = findContextOutbound();
-        next.executor().invokeClose(next, promise);
+        next.invoker.invokeClose(next, promise);
         return promise;
     }
 
     @Override
     public ChannelHandlerContext read() {
         DefaultChannelHandlerContext next = findContextOutbound();
-        next.executor().invokeRead(next);
+        next.invoker.invokeRead(next);
         return this;
     }
 
@@ -252,21 +253,21 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements 
     @Override
     public ChannelFuture write(Object msg, ChannelPromise promise) {
         DefaultChannelHandlerContext next = findContextOutbound();
-        next.executor().invokeWrite(next, msg, promise);
+        next.invoker.invokeWrite(next, msg, promise);
         return promise;
     }
 
     @Override
     public ChannelHandlerContext flush() {
         DefaultChannelHandlerContext next = findContextOutbound();
-        next.executor().invokeFlush(next);
+        next.invoker.invokeFlush(next);
         return this;
     }
 
     @Override
     public ChannelFuture writeAndFlush(Object msg, ChannelPromise promise) {
         DefaultChannelHandlerContext next = findContextOutbound();
-        next.executor().invokeWriteAndFlush(next, msg, promise);
+        next.invoker.invokeWriteAndFlush(next, msg, promise);
         return promise;
     }
 
