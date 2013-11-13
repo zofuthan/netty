@@ -45,7 +45,6 @@ import java.lang.annotation.Target;
  * <li>{@link ChannelHandlerAdapter} to handle both inbound and outbound events</li>
  * </ul>
  * </p>
- * </p>
  * <p>
  * For more information, please refer to the documentation of each subtype.
  * </p>
