@@ -67,6 +67,16 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
         return shutdownGracefully(DEFAULT_SHUTDOWN_QUIET_PERIOD, DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
     }
 
+    /**
+     * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
+     */
+    @Override
+    @Deprecated
+    public abstract void shutdown();
+
+    /**
+     * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
+     */
     @Override
     @Deprecated
     public List<Runnable> shutdownNow() {
